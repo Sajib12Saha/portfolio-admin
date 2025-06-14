@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id              String        @id @default(cuid())
+  name            String
+  phone           String
+  email           String
+  profession      String
+  bio             String
+  openGraphImage  String?
+  twitterImage    String?
+  metaImage       String?
+  metaDescription String?
+  welcomeMessage  String
+  primaryImage    String
+  secondaryImage  String
+  socialMedia     SocialMedia[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SocialMedia {
+  id           String  @id @default(cuid())
+  platformName String
+  platformLink String
+  profileId    String
+  profile      Profile @relation(fields: [profileId], references: [id])
+}
+
+model Portfolio {
+  id           String       @id @default(cuid())
+  title        String
+  desc         String
+  externalLink String?
+  react        Int
+  image        String
+  technology   Technology[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Technology {
+  id         String    @id @default(cuid())
+  image      String
+  porfolioId String
+  Portfolio  Portfolio @relation(fields: [porfolioId], references: [id])
+}
+
+model Blog {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  image     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Gig {
+  id         String  @id @default(cuid())
+  orderLink  String?
+  basicId    String  @unique
+  standardId String  @unique
+  premiumId  String  @unique
+
+  basic Package @relation("BasicPackage", fields: [basicId], references: [id])
+
+  standard Package @relation("StandardPackage", fields: [standardId], references: [id])
+
+  premium Package @relation("PremiumPackage", fields: [premiumId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Package {
+  id       String   @id @default(cuid())
+  title    String
+  desc     String
+  price    Float
+  features String[]
+
+  basicOf    Gig? @relation("BasicPackage")
+  standardOf Gig? @relation("StandardPackage")
+  premiumOf  Gig? @relation("PremiumPackage")
+}
+
+model Resume {
+  id           String @id @default(cuid())
+  educationId  String @unique
+  experienceId String @unique
+
+  education  Education  @relation(fields: [educationId], references: [id])
+  experience Experience @relation(fields: [experienceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Education {
+  id          String @id @default(cuid())
+  degree      String
+  institution String
+  cgpa        Float
+  desc        String
+
+  resume Resume?
+}
+
+model Experience {
+  id         String   @id @default(cuid())
+  profession String
+  company    String
+  desc       String
+  technology String[]
+
+  resume Resume?
+}
+
+model Service {
+  id       String   @id @default(cuid())
+  title    String
+  services String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SkillType {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  skills Skill[]
+}
+
+model Skill {
+  id          String    @id @default(cuid())
+  name        String
+  desc        String
+  skillImage  String
+  skillTypeId String
+  SkillType   SkillType @relation(fields: [skillTypeId], references: [id])
+}
+
+model Testimonial {
+  id               String   @id @default(cuid())
+  name             String
+  authorProfession String
+  companyName      String
+  projectTitle     String
+  platform         String
+  image            String
+  message          String
+  rating           Float
+  startDate        DateTime
+  endDate          DateTime
+}

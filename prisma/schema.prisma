@@ -1,0 +1,184 @@
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Profile {
+  id                String @id @default(cuid())
+  name              String
+  phone             String
+  address           String
+  email             String
+  profession        String
+  professionBio     String
+  openGraphImage    String?
+  twitterImage      String?
+  metaImage         String?
+  metaDescription   String?
+  welcomeMessage    String
+  primaryImage      String
+  secondaryImage    String
+  socialMedia       SocialMedia[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+
+model SocialMedia {
+    id              String @id @default(cuid())
+    platformName       String
+    platformLink        String
+    profileId       String
+    profile         Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model Portfolio {
+  id                String @id @default(cuid())
+  title             String
+  desc              String
+  externalLink      String ?
+  react             Int
+  image             String
+  technology        Technology [] 
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+
+
+model Technology {
+  id                String @id @default(cuid())
+  image             String
+  porfolioId        String
+  Portfolio         Portfolio  @relation(fields: [porfolioId], references: [id], onDelete: Cascade)
+}
+
+
+
+model Blog {
+  id                String @id @default(cuid())
+  title             String
+  content           String
+  image             String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+
+
+model Gig {
+  id             String @id @default(cuid())
+  orderLink     String?
+  basicId       String @unique
+  standardId    String @unique
+  premiumId     String @unique
+
+
+  basic         Package @relation("BasicPackage", fields: [basicId], references:  [id], onDelete: Cascade)
+
+  standard      Package @relation("StandardPackage", fields: [standardId], references: [id], onDelete: Cascade)
+
+  premium       Package @relation("PremiumPackage", fields: [premiumId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+
+
+
+model Package {
+    id                String @id @default(cuid())
+    title             String
+    desc              String
+    price             Float
+    features          String[]
+
+    basicOf           Gig? @relation("BasicPackage")
+    standardOf        Gig? @relation("StandardPackage")
+    premiumOf         Gig? @relation("PremiumPackage")
+
+}
+
+
+model Resume {
+  id          String       @id @default(cuid())
+  education   Education[]  // One-to-many
+  experience  Experience[] // One-to-many
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Education {
+  id          String   @id @default(cuid())
+  degree      String
+  institution String
+  cgpa        Float
+  desc        String
+  startYear   String
+  endYear     String
+  resumeId    String    
+  resume      Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model Experience {
+  id         String   @id @default(cuid())
+  profession String
+  company    String
+  desc       String
+  technology String[]
+  resumeId   String    
+  resume     Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+
+model Service {
+    id               String @id @default(cuid())
+    title            String
+    desc             String
+    services         String[]
+
+    createdAt        DateTime @default(now())
+    updatedAt        DateTime @updatedAt
+}
+
+model SkillType {
+      id               String @id @default(cuid())
+      name             String @unique
+      skills           Skill[]
+}
+
+model Skill {
+        id               String @id @default(cuid())
+        name             String
+        desc             String
+        skillImage       String
+        skillTypeId      String
+        SkillType        SkillType @relation(fields: [skillTypeId] ,references: [id], onDelete: Cascade)
+}
+
+
+model Testimonial {
+    id                String @id @default(cuid())
+    name              String
+    authorProfession  String
+    companyName       String
+    projectTitle      String
+    platform          String
+    image             String
+    message           String
+    rating            Float
+    startDate         DateTime
+    endDate           DateTime
+
+
+}
