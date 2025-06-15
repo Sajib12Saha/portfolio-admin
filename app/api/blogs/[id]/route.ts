@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function OPTIONS() {
   return new NextResponse(null, {
@@ -12,11 +12,13 @@ export async function OPTIONS() {
   });
 }
 
+
+
 export async function GET(
-  _request: Request,
-  context: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
-  const blogId = context.params.id;
+  const blogId = params.id;
 
   if (!blogId || typeof blogId !== "string") {
     return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
