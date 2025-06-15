@@ -160,21 +160,45 @@ export const updateGig = async (data: PricingInput, gigId: string) => {
 
 
 
-export const removeGig = async(gigId:string) =>{
-    try {
-      if(!gigId) return {
-         status: 404, message: "Gig Id is required" 
-      }
-      const deleteGig = await db.gig.delete({
-        where:{id:gigId}
-      })
-      if(!deleteGig)  return { status: 400, message: "Failed to delete Gig" };
-
-       return { status: 200, message: "Gig delete successfully" };
-        
-    } catch (error) {
-        
+export const removeGig = async (gigId: string) => {
+  try {
+    if (!gigId) {
+      return { status: 404, message: "Gig ID is required" };
     }
 
-}
+    // Fetch gig to get package IDs
+    const gig = await db.gig.findUnique({
+      where: { id: gigId },
+      select: {
+        basicId: true,
+        standardId: true,
+        premiumId: true,
+      },
+    });
+
+    if (!gig) {
+      return { status: 404, message: "Gig not found" };
+    }
+
+    // First delete the gig (which should cascade if onDelete is set properly)
+    await db.gig.delete({
+      where: { id: gigId },
+    });
+
+    // If cascade doesn't work, delete manually
+    await db.package.deleteMany({
+      where: {
+        id: {
+          in: [gig.basicId, gig.standardId, gig.premiumId],
+        },
+      },
+    });
+
+    return { status: 200, message: "Gig and packages deleted successfully" };
+  } catch (error) {
+    console.error("Error deleting gig:", error);
+    return { status: 500, message: "Server error" };
+  }
+};
+
 
