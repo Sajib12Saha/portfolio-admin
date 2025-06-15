@@ -5,20 +5,19 @@ export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS, GET',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
+      "Access-Control-Allow-Headers": "Content-Type",
     },
   });
 }
 
-
-
+// Use two args: request and context
 export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: { id: string } }
 ) {
-  const blogId = params.id;
+  const blogId = context.params.id;
 
   if (!blogId || typeof blogId !== "string") {
     return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
