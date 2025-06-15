@@ -12,13 +12,11 @@ export async function OPTIONS() {
   });
 }
 
-
-interface Params {
-  params: { id: string };
-}
-
-export async function GET(_request: Request, { params }: Params) {
-  const blogId = params.id;
+export async function GET(
+  _request: Request,
+  context: { params: { id: string } }
+) {
+  const blogId = context.params.id;
 
   if (!blogId || typeof blogId !== "string") {
     return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
