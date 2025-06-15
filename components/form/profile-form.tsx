@@ -359,7 +359,7 @@ const { mutate: update, isPending: updatePending } = useCustomMutation(
                     <CustomForm
                       field={field}
                       fieldType="image"
-                      label="Open Graph Image"
+                      label="Open Graph Image (1200x630 px)"
                       previewImage={defaultValues?.openGraphImage}
                     />
                   )}
@@ -371,7 +371,7 @@ const { mutate: update, isPending: updatePending } = useCustomMutation(
                     <CustomForm
                       field={field}
                       fieldType="image"
-                      label="X Image"
+                      label="X Image (1500x500 px)"
                       previewImage={defaultValues?.twitterImage}
                       error={fieldState.error}
                     />
