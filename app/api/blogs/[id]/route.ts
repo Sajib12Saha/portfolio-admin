@@ -12,12 +12,13 @@ export async function OPTIONS() {
   });
 }
 
-// Use two args: request and context
-export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
-  const blogId = context.params.id;
+export async function GET(request: NextRequest) {
+  // Extract the blog id from the URL path
+  const url = new URL(request.url);
+  const segments = url.pathname.split("/");
+
+  // The id param is the last segment in /api/blogs/[id]
+  const blogId = segments[segments.length - 1];
 
   if (!blogId || typeof blogId !== "string") {
     return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
