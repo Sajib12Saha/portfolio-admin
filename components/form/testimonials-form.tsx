@@ -27,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { CustomForm } from "./custom-form";
+import { supabaseClient } from "@/lib/supabase-client";
 
 interface Props {
   defaultValues?: TestimonialResponseType;
@@ -74,62 +75,74 @@ export const Testimonialsform = ({ defaultValues, onCancel }: Props) => {
     form.reset();
   };
 
-  const onSubmit = async (data: z.infer<typeof testimonialFormSchema>) => {
-    try {
-      setIsUploading(true);
+const onSubmit = async (data: z.infer<typeof testimonialFormSchema>) => {
+  try {
+    setIsUploading(true);
 
-      const formData = new FormData();
-      if (data.image instanceof File) {
-        formData.append("authorImage", data.image);
-      }
+    const bucketName = process.env.SUPABASE_BUCKET_NAME!;
+    if (!bucketName) throw new Error("Supabase bucket name not configured");
 
-      let uploads: { authorImage?: { publicUrl: string } } = {};
-
-      if (formData.has("authorImage")) {
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
+    // Upload helper
+    async function uploadFile(file: File): Promise<string> {
+      const filePath = `testimonials/${Date.now()}-${file.name}`;
+      const { error } = await supabaseClient.storage
+        .from(bucketName)
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type,
         });
 
-        if (!response.ok) {
-          throw new Error("File upload failed");
-        }
+      if (error) throw error;
 
-        uploads = await response.json();
-      }
+      const {
+        data: { publicUrl },
+      } = supabaseClient.storage.from(bucketName).getPublicUrl(filePath);
 
-      const finalData: TestimonialInput = {
-        name: data.name,
-        companyName: data.companyName,
-        authorProfession: data.authorProfession,
-        image:
-          uploads.authorImage?.publicUrl ||
-          (typeof data.image === "string" ? data.image : defaultValues?.image) ||
-          "",
-        projectTitle: data.projectTitle,
-        platform: data.platform,
-        message: data.message,
-        rating: data.rating,
-        startDate: data.startDate,
-        endDate: data.endDate,
-      };
-
-      if (!finalData.image) {
-        throw new Error("Author image is required.");
-      }
-
-      if (defaultValues?.id) {
-        update({ data: finalData, testimonialId: defaultValues.id });
-      } else {
-        mutate(finalData);
-      }
-    } catch (error) {
-      console.error("Error submitting testimonial:", error);
-      toast.error("Submission failed. Please try again.");
-    } finally {
-      setIsUploading(false);
+      return publicUrl;
     }
-  };
+
+    // Upload image if it's a File
+    let imageUrl: string = "";
+
+    if (data.image instanceof File) {
+      imageUrl = await uploadFile(data.image);
+    } else if (typeof data.image === "string") {
+      imageUrl = data.image;
+    } else if (defaultValues?.image) {
+      imageUrl = defaultValues.image;
+    }
+
+    if (!imageUrl) {
+      throw new Error("Author image is required.");
+    }
+
+    const finalData: TestimonialInput = {
+      name: data.name,
+      companyName: data.companyName,
+      authorProfession: data.authorProfession,
+      image: imageUrl,
+      projectTitle: data.projectTitle,
+      platform: data.platform,
+      message: data.message,
+      rating: data.rating,
+      startDate: data.startDate,
+      endDate: data.endDate,
+    };
+
+    if (defaultValues?.id) {
+      update({ data: finalData, testimonialId: defaultValues.id });
+    } else {
+      mutate(finalData);
+    }
+  } catch (error) {
+    console.error("Error submitting testimonial:", error);
+    toast.error("Submission failed. Please try again.");
+  } finally {
+    setIsUploading(false);
+  }
+};
+
 
   const isLoading = isUploading || isPending || updatePending;
 
