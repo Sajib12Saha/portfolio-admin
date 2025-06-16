@@ -1,17 +1,8 @@
-
 import { supabase } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
-import { Buffer } from 'buffer'; 
+import { Buffer } from "buffer";
 
-export const runtime = "nodejs";
-
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '50mb',
-    },
-  },
-};
+export const runtime = "nodejs"; // Ensure Node.js runtime is used
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,7 +24,8 @@ export async function POST(req: NextRequest) {
 
     for (const [key, value] of fileEntries) {
       const file = value as File;
-      const buffer = Buffer.from(await file.arrayBuffer());
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
       const filePath = `${Date.now()}-${file.name}`;
 
       const { data, error } = await supabase.storage
@@ -62,9 +54,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(results);
   } catch (error) {
-    console.error("Upload failed", error);
+    console.error("Upload failed:", error);
     return NextResponse.json(
-      { success: false, message: "Upload failed", error },
+      { success: false, message: "Upload failed", error: String(error) },
       { status: 500 }
     );
   }

@@ -1,15 +1,13 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
     domains: [process.env.DATABASE_DOMAIN_NAME!],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   experimental: {
-    serverActions: {
-      bodySizeLimit: "50mb",
-    },
+    serverActions: true,
+    serverComponentsExternalPackages: ["buffer"],
   },
 };
 
