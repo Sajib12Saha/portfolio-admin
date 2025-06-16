@@ -153,7 +153,7 @@ const onSubmit = (data: ResumeFormValues) => {
                 </TabsList>
 
                 <TabsContent value="education">
-                  <div className="space-y-4 p-4">
+                  <div className="space-y-4 p-1 md:p-4">
                     <h3 className="text-lg font-semibold">Education</h3>
                     {educationFields.map((_, index) => (
                       <Card key={index}>
@@ -313,7 +313,7 @@ const onSubmit = (data: ResumeFormValues) => {
                 </TabsContent>
 
                 <TabsContent value="experience">
-                  <div className="space-y-4 p-4">
+                  <div className="space-y-4 p-1 md:p-4">
                     <h3 className="text-lg font-semibold">Experience</h3>
                     {experienceFields.map((_, index) => (
                       <ExperienceItem

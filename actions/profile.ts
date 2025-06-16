@@ -4,7 +4,6 @@ import { db } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
 import { ProfileInput, ResponseProfileType } from "@/types/type"
 
-type ProfileListResponse = ProfileInput[];
 
 export const createProfile = async(data:ProfileInput) =>
 {
@@ -126,14 +125,12 @@ export const removeProfile = async (profileId: string) => {
       return { status: 400, message: "Profile ID is required" };
     }
 
-    // Fetch profile to get image URLs
     const profile = await db.profile.findUnique({ where: { id: profileId } });
-
     if (!profile) {
       return { status: 404, message: "Profile not found" };
     }
 
-    const bucket = process.env.SUPABASE_BUCKET_NAME!;
+    const bucket = process.env.SUPABASE_BUCKET_NAME!; // e.g. 'images'
     const imageUrls = [
       profile.primaryImage,
       profile.secondaryImage,
@@ -142,33 +139,44 @@ export const removeProfile = async (profileId: string) => {
       profile.twitterImage,
     ];
 
-    // 1. Collect paths to delete
     const pathsToDelete: string[] = [];
 
     for (const url of imageUrls) {
       if (!url) continue;
 
-      // Extract path from full public URL
-      const match = url.split(`${bucket}/`)[1]; // works if URL contains bucket name
-      if (match) {
-        pathsToDelete.push(match);
+      try {
+        const urlObj = new URL(url);
+        const expectedPrefix = `/storage/v1/object/public/${bucket}/`;
+
+        if (urlObj.pathname.startsWith(expectedPrefix)) {
+          const relativePath = decodeURIComponent(
+            urlObj.pathname.slice(expectedPrefix.length)
+          );
+          if (relativePath) {
+            pathsToDelete.push(relativePath);
+          }
+        } else {
+          console.warn("URL does not match bucket prefix:", url);
+        }
+      } catch (err) {
+        console.warn("Invalid image URL:", url);
       }
     }
 
-    // 2. Delete all matched files from Supabase Storage
     if (pathsToDelete.length > 0) {
       const { error } = await supabase.storage.from(bucket).remove(pathsToDelete);
       if (error) {
-        console.warn("Failed to delete one or more profile images:", error.message);
+        console.error("Failed to delete images:", error.message);
+      } else {
+        console.log("Deleted images:", pathsToDelete);
       }
     }
 
-    // 3. Delete profile from DB
     await db.profile.delete({ where: { id: profileId } });
 
-    return { status: 200, message: "Profile deleted successfully" };
+    return { status: 200, message: "Profile and images deleted successfully" };
   } catch (error) {
     console.error("Error deleting profile:", error);
-    return { status: 500, message: "Failed to delete profile" };
+    return { status: 500, message: "Server error" };
   }
 };
