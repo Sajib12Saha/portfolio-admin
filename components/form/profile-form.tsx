@@ -17,7 +17,7 @@ import { Card, CardContent } from "../ui/card";
 import { Form, FormField, FormItem, FormLabel } from "../ui/form";
 import { CustomForm } from "./custom-form";
 import { SocialAdder } from "./social-adder";
-import { supabaseClient } from "@/lib/supabase";
+import { supabaseClient } from "@/lib/supabase-client";
 
 interface Props {
   defaultValues?: ResponseProfileType;

@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from "@/lib/db";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase-client";
 import { ProfileInput, ResponseProfileType } from "@/types/type"
 
 type ProfileListResponse = ProfileInput[];

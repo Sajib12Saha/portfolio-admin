@@ -27,7 +27,7 @@ import {
 } from "../ui/select";
 
 import { PlusCircle, Trash2, Loader2 } from "lucide-react";
-import { supabaseClient } from "@/lib/supabase";
+import { supabaseClient } from "@/lib/supabase-client";
 
 
 

@@ -16,7 +16,7 @@ import { createBlog, updateBlog } from "@/actions/blog";
 import { Loader2 } from "lucide-react";
 import { RichTextEditor } from "./rich-text-editor";
 import { GoStarFill } from "react-icons/go";
-import { supabaseClient } from "@/lib/supabase";
+import { supabaseClient } from "@/lib/supabase-client";
 
 type BlogFormValues = z.infer<typeof blogFormSchema>;
 

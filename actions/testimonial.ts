@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from "@/lib/db"
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase-server";
 import {TestimonialInput, TestimonialResponseType } from "@/types/type"
 
 
