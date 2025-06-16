@@ -17,6 +17,7 @@ import { Card, CardContent } from "../ui/card";
 import { Form, FormField, FormItem, FormLabel } from "../ui/form";
 import { CustomForm } from "./custom-form";
 import { SocialAdder } from "./social-adder";
+import { supabase } from "@/lib/supabase";
 
 interface Props {
   defaultValues?: ResponseProfileType;
@@ -62,94 +63,108 @@ const { mutate: update, isPending: updatePending } = useCustomMutation(
   }
 );
 
-  const onSubmit = async (data: z.infer<typeof profileFormSchema>) => {
-    try {
-      setIsUploading(true);
-      const formData = new FormData();
+const onSubmit = async (data: z.infer<typeof profileFormSchema>) => {
+  try {
+    setIsUploading(true);
 
-      if (data.primaryImage instanceof File)
-        formData.append("primaryImage", data.primaryImage);
-      if (data.secondaryImage instanceof File)
-        formData.append("secondaryImage", data.secondaryImage);
-      if (data.metaImage instanceof File)
-        formData.append("metaImage", data.metaImage);
-      if (data.openGraphImage instanceof File)
-        formData.append("openGraphImage", data.openGraphImage);
-      if (data.twitterImage instanceof File)
-        formData.append("twitterImage", data.twitterImage);
+    const bucketName = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
+    if (!bucketName) throw new Error("Supabase bucket name not configured");
 
-      let uploads: Record<string, { publicUrl: string }> = {};
-
-      if (Array.from(formData.keys()).length > 0) {
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
+    // Helper to upload one file and return public URL
+    async function uploadFile(file: File) {
+      const filePath = `${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type,
         });
-
-        if (!response.ok) throw new Error("File upload failed");
-
-        uploads = await response.json();
-      }
-
-      const finalData: ProfileInput = {
-      
-        name: data.name,
-        phone: data.phone,
-        email: data.email,
-        address: data.address,
-        profession: data.profession,
-        professionBio: data.professionBio,
-        welcomeMessage: data.welcomeMessage,
-        socialMedia: data.socialMedia,
-        metaDescription: data.metaDescription,
-        primaryImage:
-          uploads.primaryImage?.publicUrl ||
-          (typeof data.primaryImage === "string"
-            ? data.primaryImage
-            : defaultValues?.primaryImage) ||
-          "",
-        secondaryImage:
-          uploads.secondaryImage?.publicUrl ||
-          (typeof data.secondaryImage === "string"
-            ? data.secondaryImage
-            : defaultValues?.secondaryImage) ||
-          "",
-        metaImage:
-          uploads.metaImage?.publicUrl ||
-          (typeof data.metaImage === "string"
-            ? data.metaImage
-            : defaultValues?.metaImage) ||
-          null,
-        openGraphImage:
-          uploads.openGraphImage?.publicUrl ||
-          (typeof data.openGraphImage === "string"
-            ? data.openGraphImage
-            : defaultValues?.openGraphImage) ||
-          null,
-        twitterImage:
-          uploads.twitterImage?.publicUrl ||
-          (typeof data.twitterImage === "string"
-            ? data.twitterImage
-            : defaultValues?.twitterImage) ||
-          null,
-      };
-
-      if (!finalData.primaryImage || !finalData.secondaryImage) {
-        throw new Error("Primary and secondary images are required.");
-      }
-
-      if (defaultValues?.id) {
-          update({ profileId: defaultValues.id, data: finalData });
-      } else {
-        mutate(finalData);
-      }
-    } catch (error) {
-      console.error("Error submitting profile:", error);
-      toast.error("Submission failed. Please try again.");
-    } finally {
-      setIsUploading(false);
+      if (error) throw error;
+      const { data:{publicUrl} } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+      return publicUrl;
     }
-  };
+
+    // Object to hold uploaded URLs
+    const uploads: Record<string, string | null> = {
+      primaryImage: null,
+      secondaryImage: null,
+      metaImage: null,
+      openGraphImage: null,
+      twitterImage: null,
+    };
+
+    // Upload files if present
+    if (data.primaryImage instanceof File)
+      uploads.primaryImage = await uploadFile(data.primaryImage);
+    if (data.secondaryImage instanceof File)
+      uploads.secondaryImage = await uploadFile(data.secondaryImage);
+    if (data.metaImage instanceof File)
+      uploads.metaImage = await uploadFile(data.metaImage);
+    if (data.openGraphImage instanceof File)
+      uploads.openGraphImage = await uploadFile(data.openGraphImage);
+    if (data.twitterImage instanceof File)
+      uploads.twitterImage = await uploadFile(data.twitterImage);
+
+    // Compose final data, falling back to existing URLs or defaultValues
+    const finalData: ProfileInput = {
+      name: data.name,
+      phone: data.phone,
+      email: data.email,
+      address: data.address,
+      profession: data.profession,
+      professionBio: data.professionBio,
+      welcomeMessage: data.welcomeMessage,
+      socialMedia: data.socialMedia,
+      metaDescription: data.metaDescription,
+      primaryImage:
+        uploads.primaryImage ||
+        (typeof data.primaryImage === "string"
+          ? data.primaryImage
+          : defaultValues?.primaryImage) ||
+        "",
+      secondaryImage:
+        uploads.secondaryImage ||
+        (typeof data.secondaryImage === "string"
+          ? data.secondaryImage
+          : defaultValues?.secondaryImage) ||
+        "",
+      metaImage:
+        uploads.metaImage ||
+        (typeof data.metaImage === "string"
+          ? data.metaImage
+          : defaultValues?.metaImage) ||
+        null,
+      openGraphImage:
+        uploads.openGraphImage ||
+        (typeof data.openGraphImage === "string"
+          ? data.openGraphImage
+          : defaultValues?.openGraphImage) ||
+        null,
+      twitterImage:
+        uploads.twitterImage ||
+        (typeof data.twitterImage === "string"
+          ? data.twitterImage
+          : defaultValues?.twitterImage) ||
+        null,
+    };
+
+    if (!finalData.primaryImage || !finalData.secondaryImage) {
+      throw new Error("Primary and secondary images are required.");
+    }
+
+    if (defaultValues?.id) {
+      update({ profileId: defaultValues.id, data: finalData });
+    } else {
+      mutate(finalData);
+    }
+  } catch (error) {
+    console.error("Error submitting profile:", error);
+    toast.error("Submission failed. Please try again.");
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   const cancelSubmit = () =>{
     onCancel?.(); 
