@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
-import { PortfolioInput, ResponsePortfolioInput } from "@/types/type";
+import { PortfolioInput, ResponsePortfolioInput } from "@/types/type"
 
 export type PaginatedPortfolioResponse = {
   data: ResponsePortfolioInput[];
@@ -12,43 +12,40 @@ export type PaginatedPortfolioResponse = {
   totalPages: number;
 };
 
-// ✅ Create Portfolio
-export const createPortfolio = async (data: PortfolioInput) => {
-  try {
-    if (!data) return { status: 400, message: "Data not provided" };
+export const createPortfolio = async(data:PortfolioInput) =>{
+    
+    try {
+       if(!data)return {status:400,message:"data is not found" }
 
     const res = await db.portfolio.create({
-      data: {
-        ...data,
-        technology: {
-          create: data.technology,
-        },
-      },
-    });
-
-    if (!res) {
-      return { status: 404, message: "Failed to create portfolio" };
+        data:{
+            ...data,
+            technology:{
+                create:data.technology
+            }
+        }
+    })
+         if(!res)return{
+            status:404,
+            message:"Failed to create porfolio"
+          }
+            return {status:200, message:"Portfolio to create successfully"}
+    } catch (error) {
+          return {status:500,message:"Someting wrong in server"}
     }
 
-    return { status: 200, message: "Portfolio created successfully" };
-  } catch (error) {
-    console.error("Create portfolio error:", error);
-    return { status: 500, message: "Something went wrong on the server" };
-  }
-};
+}
 
-// ✅ Get Paginated Portfolios
-export const getPortfolios = async (page: number = 1): Promise<PaginatedPortfolioResponse> => {
-  const res = await fetch(`${process.env.NEXT_BASE_URL}/api/portfolio?page=${page}`, {
-    cache: "no-store",
-  });
+export const getPortfolios = async (page: number = 1):Promise<PaginatedPortfolioResponse> => {
+  const res = await fetch(`${process.env.NEXT_BASE_URL}/api/portfolio?page=${page}`, { cache: "no-store" });
 
   if (!res.ok) throw new Error("Failed to load portfolios");
-
   return await res.json();
 };
 
+
 // ✅ Update Portfolio
+
 export const updatePortfolio = async (data: PortfolioInput, portfolioId: string) => {
   try {
     if (!portfolioId) {
@@ -111,6 +108,7 @@ export const updatePortfolio = async (data: PortfolioInput, portfolioId: string)
     return { status: 500, message: "Something went wrong on the server" };
   }
 };
+
 
 // ✅ Delete Portfolio (only main image removed from Supabase)
 export const deletePortfolio = async (portfolioId: string) => {
