@@ -3,6 +3,8 @@ import { supabase } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
 import { Buffer } from 'buffer'; 
 
+export const runtime = "nodejs";
+
 export const config = {
   api: {
     bodyParser: {

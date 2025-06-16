@@ -1,7 +1,7 @@
 import { transporter } from '@/lib/google';
 import { NextResponse } from 'next/server';
 
-
+export const runtime = "nodejs";
 
 export async function OPTIONS() {
   return new NextResponse(null, {
