@@ -40,40 +40,37 @@ export const getBlogs = async (page: number = 1):Promise<PaginatedBlogResponse> 
   return await res.json();
 };
 
-
 export const updateBlog = async (data: BlogInput, blogId: string) => {
   try {
-    if (!blogId) {
-      return { status: 400, message: "Blog ID is required" };
-    }
+    if (!blogId) return { status: 400, message: "Blog ID is required" };
 
-    // Find existing blog to get old image URL (if any)
     const existingBlog = await db.blog.findUnique({ where: { id: blogId } });
 
-    if (!existingBlog) {
-      return { status: 404, message: "Blog not found" };
-    }
+    if (!existingBlog) return { status: 404, message: "Blog not found" };
 
-    // If image changed and old image exists, delete old image from Supabase storage
     const bucket = process.env.SUPABASE_BUCKET_NAME!;
     const extractPath = (url?: string) => {
       if (!url) return null;
-      const parts = url.split(`${bucket}/`);
-      return parts.length > 1 ? parts[1] : null;
+      try {
+        const urlObj = new URL(url);
+        const expectedPrefix = `/storage/v1/object/public/${bucket}/`;
+        if (urlObj.pathname.startsWith(expectedPrefix)) {
+          return decodeURIComponent(urlObj.pathname.slice(expectedPrefix.length));
+        }
+      } catch {
+        return null;
+      }
+      return null;
     };
 
     const oldImagePath = extractPath(existingBlog.image);
     const newImagePath = extractPath(data.image);
 
-    // Only remove old image if different from new image
     if (oldImagePath && oldImagePath !== newImagePath) {
       const { error } = await supabase.storage.from(bucket).remove([oldImagePath]);
-      if (error) {
-        console.warn(`Failed to delete old blog image ${oldImagePath}:`, error.message);
-      }
+      if (error) console.warn(`Failed to delete old blog image: ${error.message}`);
     }
 
-    // Update blog with new data
     await db.blog.update({
       where: { id: blogId },
       data: {
@@ -90,33 +87,35 @@ export const updateBlog = async (data: BlogInput, blogId: string) => {
   }
 };
 
-
+// Delete blog
 export const deleteBlog = async (blogId: string) => {
   try {
-    if (!blogId) {
-      return { status: 400, message: "Blog ID is required" };
-    }
+    if (!blogId) return { status: 400, message: "Blog ID is required" };
 
     const blog = await db.blog.findUnique({ where: { id: blogId } });
 
-    if (!blog) {
-      return { status: 404, message: "Blog not found" };
-    }
+    if (!blog) return { status: 404, message: "Blog not found" };
 
-    // Helper to extract storage path from the image URL
     const bucket = process.env.SUPABASE_BUCKET_NAME!;
     const extractPath = (url?: string) => {
       if (!url) return null;
-      const parts = url.split(`${bucket}/`);
-      return parts.length > 1 ? parts[1] : null;
+      try {
+        const urlObj = new URL(url);
+        const expectedPrefix = `/storage/v1/object/public/${bucket}/`;
+        if (urlObj.pathname.startsWith(expectedPrefix)) {
+          return decodeURIComponent(urlObj.pathname.slice(expectedPrefix.length));
+        }
+      } catch {
+        return null;
+      }
+      return null;
     };
 
     const imagePath = extractPath(blog.image);
+
     if (imagePath) {
       const { error } = await supabase.storage.from(bucket).remove([imagePath]);
-      if (error) {
-        console.warn(`Failed to delete blog image ${imagePath}:`, error.message);
-      }
+      if (error) console.warn(`Failed to delete blog image: ${error.message}`);
     }
 
     await db.blog.delete({ where: { id: blogId } });
