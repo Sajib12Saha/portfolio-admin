@@ -72,18 +72,28 @@ export const updateProfile = async (profileId: string, data: ProfileInput) => {
     };
 
     const pathsToDelete: string[] = [];
-console.log("Deleting paths:", pathsToDelete);
+
     for (const key of Object.keys(existingImages) as Array<keyof typeof existingImages>) {
       const oldUrl = existingImages[key];
       const newUrl = incomingImages[key];
-console.log("Comparing old/new", { key, oldUrl, newUrl });
-
 
       if (oldUrl && oldUrl !== newUrl) {
-        // Extract path from URL (assuming Supabase public URL format)
-        const match = oldUrl.split(`${bucket}/`)[1];
-        if (match) {
-          pathsToDelete.push(match);
+        try {
+          const urlObj = new URL(oldUrl);
+          const expectedPrefix = `/storage/v1/object/public/${bucket}/`;
+
+          if (urlObj.pathname.startsWith(expectedPrefix)) {
+            const relativePath = decodeURIComponent(
+              urlObj.pathname.slice(expectedPrefix.length)
+            );
+            if (relativePath) {
+              pathsToDelete.push(relativePath);
+            }
+          } else {
+            console.warn("URL does not match bucket prefix:", oldUrl);
+          }
+        } catch (err) {
+          console.warn("Invalid image URL:", oldUrl);
         }
       }
     }
@@ -92,30 +102,35 @@ console.log("Comparing old/new", { key, oldUrl, newUrl });
       const { error } = await supabase.storage.from(bucket).remove(pathsToDelete);
       if (error) {
         console.warn("Failed to delete one or more profile images:", error.message);
+      } else {
+        console.log("Deleted old profile images:", pathsToDelete);
       }
     }
 
-    // Now update the profile
-const updated = await db.profile.update({
-  where: { id: profileId },
-  data: {
-    ...data,
-    socialMedia: {
-      deleteMany: {}, // remove all previous entries
-      create: data.socialMedia.map((item) => ({
-        platformName: item.platformName,
-        platformLink: item.platformLink,
-      })),
-    },
-  },
-});
-    return { status: 200, message: "Profile updated successfully", data: updated };
+    const updated = await db.profile.update({
+      where: { id: profileId },
+      data: {
+        ...data,
+        socialMedia: {
+          deleteMany: {}, // clear old social media
+          create: data.socialMedia.map((item) => ({
+            platformName: item.platformName,
+            platformLink: item.platformLink,
+          })),
+        },
+      },
+    });
+
+    return {
+      status: 200,
+      message: "Profile updated successfully",
+      data: updated,
+    };
   } catch (error) {
     console.error("Error updating profile:", error);
     return { status: 500, message: "Failed to update profile" };
   }
 };
-
 
 
 
