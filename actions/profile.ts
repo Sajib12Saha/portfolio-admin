@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
 import { ProfileInput, ResponseProfileType } from "@/types/type"
 
+type ProfileListResponse = ProfileInput[];
 
 export const createProfile = async(data:ProfileInput) =>
 {
@@ -41,6 +42,7 @@ export const fetchProfile = async (): Promise<ResponseProfileType> => {
 
   return data;
 };
+
 
 export const updateProfile = async (profileId: string, data: ProfileInput) => {
   try {
