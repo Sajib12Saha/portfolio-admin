@@ -42,6 +42,7 @@ export const getTestimonials = async ():Promise<PaginatedTestimonialsResponse> =
 
 
 
+
 export const updateTestimonial = async (data: TestimonialInput, testimonialId: string) => {
   try {
     if (!testimonialId || !data) {
