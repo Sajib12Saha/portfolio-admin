@@ -17,7 +17,7 @@ import { Card, CardContent } from "../ui/card";
 import { Form, FormField, FormItem, FormLabel } from "../ui/form";
 import { CustomForm } from "./custom-form";
 import { SocialAdder } from "./social-adder";
-import { supabase } from "@/lib/supabase";
+import { supabaseClient } from "@/lib/supabase";
 
 interface Props {
   defaultValues?: ResponseProfileType;
@@ -73,7 +73,7 @@ const onSubmit = async (data: z.infer<typeof profileFormSchema>) => {
     // Helper to upload one file and return public URL
     async function uploadFile(file: File) {
       const filePath = `${Date.now()}-${file.name}`;
-      const { data, error } = await supabase.storage
+      const { data, error } = await supabaseClient.storage
         .from(bucketName)
         .upload(filePath, file, {
           cacheControl: "3600",
@@ -81,7 +81,7 @@ const onSubmit = async (data: z.infer<typeof profileFormSchema>) => {
           contentType: file.type,
         });
       if (error) throw error;
-      const { data:{publicUrl} } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+      const { data:{publicUrl} } = supabaseClient.storage.from(bucketName).getPublicUrl(filePath);
       return publicUrl;
     }
 

@@ -1,8 +1,14 @@
+
+
 import { createClient } from "@supabase/supabase-js";
 
-export const supabase = createClient(
+export const supabaseClient = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // use service role for server-side ops
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! // use service role for server-side ops
 );
 
 
+export const supabase= createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // use service role for server-side ops
+);

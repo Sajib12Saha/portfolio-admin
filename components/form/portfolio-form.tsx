@@ -27,7 +27,7 @@ import {
 } from "../ui/select";
 
 import { PlusCircle, Trash2, Loader2 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { supabaseClient } from "@/lib/supabase";
 
 
 
@@ -99,7 +99,7 @@ const onSubmit = async (data: z.infer<typeof portfolioFormSchema>) => {
 
       // Upload portfolio image to Supabase
       const filePath = `${Date.now()}-${data.image.name}`;
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabaseClient.storage
         .from(bucketName)
         .upload(filePath, data.image, {
           cacheControl: "3600",
@@ -109,7 +109,7 @@ const onSubmit = async (data: z.infer<typeof portfolioFormSchema>) => {
 
       if (uploadError) throw uploadError;
 
-      const { data: {publicUrl} } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+      const { data: {publicUrl} } = supabaseClient.storage.from(bucketName).getPublicUrl(filePath);
 
       if (!publicUrl) throw new Error("Failed to get public URL for portfolio image");
 

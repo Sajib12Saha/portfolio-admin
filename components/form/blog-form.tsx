@@ -16,6 +16,7 @@ import { createBlog, updateBlog } from "@/actions/blog";
 import { Loader2 } from "lucide-react";
 import { RichTextEditor } from "./rich-text-editor";
 import { GoStarFill } from "react-icons/go";
+import { supabaseClient } from "@/lib/supabase";
 
 type BlogFormValues = z.infer<typeof blogFormSchema>;
 
@@ -83,62 +84,65 @@ export const Blogform = ({ defaultValue, onCancel }: Props) => {
   };
 
   // Submit handler
-  const onSubmit = async () => {
-    try {
-      setIsUploading(true);
+const onSubmit = async () => {
+  try {
+    setIsUploading(true);
 
-      const data = form.getValues();
+    const data = form.getValues();
 
-      let imageUrl = "";
+    let imageUrl = "";
 
-      if (data.image instanceof File) {
-        const formData = new FormData();
-        formData.append("blogImage", data.image);
+    if (data.image instanceof File) {
+      const bucketName = process.env.SUPABASE_BUCKET_NAME!;
+      if (!bucketName) throw new Error("Supabase bucket name not configured");
 
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
+      const filePath = `${Date.now()}-${data.image.name}`;
+      const { error: uploadError } = await supabaseClient.storage
+        .from(bucketName)
+        .upload(filePath, data.image, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: data.image.type,
         });
 
-        if (!response.ok) throw new Error("File upload failed");
+      if (uploadError) throw uploadError;
 
-        const uploads = await response.json();
-        imageUrl = uploads.blogImage?.publicUrl;
+      const {data:{publicUrl} } = supabaseClient.storage.from(bucketName).getPublicUrl(filePath);
+      if (!publicUrl) throw new Error("Failed to get public URL for blog image");
 
-        if (!imageUrl) {
-          throw new Error("Image upload did not return a valid URL.");
-        }
-      } else if (typeof data.image === "string" && data.image.length > 0) {
-        imageUrl = data.image;
-      } else {
-        throw new Error("Image is required.");
-      }
-
-      const sanitizedContent = DOMPurify.sanitize(data.content, {
-        USE_PROFILES: { html: true },
-        ALLOWED_TAGS: [
-          "p", "br", "b", "strong", "i", "em", "u", "s", "ul", "ol", "li",
-          "h1", "h2", "h3", "blockquote", "code", "pre", "div", "span", "a",
-        ],
-        ALLOWED_ATTR: ["class", "href", "target", "rel",],
-      });
-
-      const finalData: BlogInput = {
-        title: data.title,
-        content: sanitizedContent,
-        image: imageUrl,
-      };
-
-      if (defaultValue?.id) {
-        updateMutate({ data: finalData, blogId: defaultValue.id });
-      } else {
-        createMutate(finalData);
-      }
-    } catch (error) {
-      console.error("Blog submit error:", error);
-      setIsUploading(false);
+      imageUrl = publicUrl;
+    } else if (typeof data.image === "string" && data.image.length > 0) {
+      imageUrl = data.image;
+    } else {
+      throw new Error("Image is required.");
     }
-  };
+
+    const sanitizedContent = DOMPurify.sanitize(data.content, {
+      USE_PROFILES: { html: true },
+      ALLOWED_TAGS: [
+        "p", "br", "b", "strong", "i", "em", "u", "s", "ul", "ol", "li",
+        "h1", "h2", "h3", "blockquote", "code", "pre", "div", "span", "a",
+      ],
+      ALLOWED_ATTR: ["class", "href", "target", "rel"],
+    });
+
+    const finalData: BlogInput = {
+      title: data.title,
+      content: sanitizedContent,
+      image: imageUrl,
+    };
+
+    if (defaultValue?.id) {
+      updateMutate({ data: finalData, blogId: defaultValue.id });
+    } else {
+      createMutate(finalData);
+    }
+  } catch (error) {
+    console.error("Blog submit error:", error);
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   const isLoading = isUploading || createPending || updatePending;
 
