@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from "@/lib/db";
-import { supabase } from "@/lib/supabase-server";
+import { supabase as Supabase } from "@/lib/supabase-server";
 import { ProfileInput, ResponseProfileType } from "@/types/type"
 
 type ProfileListResponse = ProfileInput[];
@@ -101,7 +101,7 @@ export const updateProfile = async (profileId: string, data: ProfileInput) => {
     }
 
     if (pathsToDelete.length > 0) {
-      const { error } = await supabase.storage.from(bucket).remove(pathsToDelete);
+      const { error } = await Supabase.storage.from(bucket).remove(pathsToDelete);
       if (error) {
         console.warn("Failed to delete one or more profile images:", error.message);
       } else {
@@ -181,7 +181,7 @@ export const removeProfile = async (profileId: string) => {
     }
 
     if (pathsToDelete.length > 0) {
-      const { error } = await supabase.storage.from(bucket).remove(pathsToDelete);
+      const { error } = await Supabase.storage.from(bucket).remove(pathsToDelete);
       if (error) {
         console.error("Failed to delete images:", error.message);
       } else {
