@@ -27,6 +27,7 @@ import {
 } from "../ui/select";
 
 import { PlusCircle, Trash2, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 
 
@@ -89,26 +90,30 @@ const onSubmit = async (data: z.infer<typeof portfolioFormSchema>) => {
     setIsUploading(true);
 
     let portfolioImageUrl = defaultValues?.image || "";
-
     const isUpdating = !!defaultValues;
-
     const isNewImage = typeof data.image !== "string";
 
-    // Upload image only if a new file is provided
-    if (isNewImage) {
-      const formData = new FormData();
-      formData.append("portfolioImage", data.image as File);
+    if (isNewImage && data.image instanceof File) {
+      const bucketName = process.env.SUPABASE_BUCKET_NAME!;
+      if (!bucketName) throw new Error("Supabase bucket name not configured");
 
-      const uploadRes = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+      // Upload portfolio image to Supabase
+      const filePath = `${Date.now()}-${data.image.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, data.image, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: data.image.type,
+        });
 
-      if (!uploadRes.ok) throw new Error("Image upload failed");
+      if (uploadError) throw uploadError;
 
-      const uploads = await uploadRes.json();
-      portfolioImageUrl = uploads["portfolioImage"]?.publicUrl;
-      if (!portfolioImageUrl) throw new Error("No uploaded image returned");
+      const { data: {publicUrl} } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+
+      if (!publicUrl) throw new Error("Failed to get public URL for portfolio image");
+
+      portfolioImageUrl = publicUrl;
     }
 
     const techImages = data.technology.map((tech) => ({
@@ -136,7 +141,6 @@ const onSubmit = async (data: z.infer<typeof portfolioFormSchema>) => {
     setIsUploading(false);
   }
 };
-
 
 
 

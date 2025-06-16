@@ -67,7 +67,7 @@ const onSubmit = async (data: z.infer<typeof profileFormSchema>) => {
   try {
     setIsUploading(true);
 
-    const bucketName = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
+    const bucketName = process.env.SUPABASE_BUCKET_NAME!;
     if (!bucketName) throw new Error("Supabase bucket name not configured");
 
     // Helper to upload one file and return public URL
