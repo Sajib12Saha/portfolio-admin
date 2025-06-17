@@ -150,7 +150,7 @@ const onSubmit = async () => {
   return (
     <div className="space-y-2">
       <h3 className="text-lg md:text-xl font-semibold">Blog Form</h3>
-      <Card className="max-w-5xl">
+      <Card className="w-full max-w-5xl">
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
