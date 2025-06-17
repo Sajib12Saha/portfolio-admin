@@ -221,7 +221,7 @@ export const RichTextEditor = ({
       {/* Editor Content */}
 <div
   className={cn(
-    'prose prose-sm rounded-md border px-3  py-2 text-sm bg-input text-foreground shadow-[inset_3px_3px_3px_rgba(0,0,0,0.25),inset_-1px_-1px_4px_rgba(255,255,255,0.8)] dark:shadow-[inset_3px_3px_3px_rgba(0,0,0,0.25),inset_-1px_-1px_4px_rgba(255,255,255,0.16)]'
+    'prose prose-sm relative rounded-md border px-3  py-2 text-sm bg-input text-foreground shadow-[inset_3px_3px_3px_rgba(0,0,0,0.25),inset_-1px_-1px_4px_rgba(255,255,255,0.8)] dark:shadow-[inset_3px_3px_3px_rgba(0,0,0,0.25),inset_-1px_-1px_4px_rgba(255,255,255,0.16)]'
   )}
 >
   <EditorContent editor={editor} />
