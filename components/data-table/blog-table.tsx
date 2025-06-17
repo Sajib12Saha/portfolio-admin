@@ -88,7 +88,7 @@ export const BlogTable = ({ data, onDelete, isPending }: Props) => {
             {/* Edit Dialog */}
             <Dialog open={!!editBlog} onOpenChange={(open) => !open && setEditBlog(null)}>
               <DialogContent
-                className="w-full max-w-4xl h-full p-6 overflow-y-auto"
+                className="h-full p-6 overflow-y-auto"
      
               >
                 <DialogHeader>
