@@ -118,7 +118,7 @@ export const TestimonialsTable = ({ data, onDelete, isPending }: Props) => {
                 if (!open) setEditTestimonial(null);
               }}
             >
-              <DialogContent className="max-h-[80vh]  overflow-y-auto p-6">
+              <DialogContent className="h-full  overflow-y-auto p-6">
                 <DialogTitle>Edit Testimonial</DialogTitle>
                 {editTestimonial && (
                   <Testimonialsform
