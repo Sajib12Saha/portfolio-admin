@@ -140,9 +140,9 @@ export const Blogform = ({ defaultValue, onCancel }: Props) => {
   const isLoading = isUploading || createPending || updatePending;
 
   return (
-    <div className="space-y-2 lg:max-w-5xl w-full mx-auto">
+    <div className="space-y-2 ">
       <h3 className="text-lg md:text-xl font-semibold">Blog Form</h3>
-      <Card className="w-full">
+      <Card className="max-w-5xl">
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -160,7 +160,7 @@ export const Blogform = ({ defaultValue, onCancel }: Props) => {
                 )}
               />
 
-              <div className="space-y-2 w-full lg:max-w-5xl">
+              <div className="space-y-2">
                 <FormLabel className="flex items-center gap-x-2 text-base">
                   Content
                   <div className="shadow-[3px_3px_3px_rgba(0,0,0,0.25),-1px_-1px_4px_rgba(255,255,255,0.8)] dark:shadow-[3px_3px_3px_rgba(0,0,0,0.25),-1px_-1px_4px_rgba(255,255,255,0.16)] p-0.5 rounded-full">
@@ -168,7 +168,7 @@ export const Blogform = ({ defaultValue, onCancel }: Props) => {
                   </div>
                 </FormLabel>
 
-                <div className="w-full lg:max-w-5xl overflow-hidden">
+                <div className="w-full overflow-hidden">
                   <RichTextEditor
                     value={form.watch("content")}
                     onChange={handleContentChange}
