@@ -400,7 +400,7 @@ async function uploadFile(file: File) {
                     <CustomForm
                       field={field}
                       fieldType="image"
-                      label="X Image (1500x500 px)"
+                      label="X Image (1000x750 px)"
                       previewImage={defaultValues?.twitterImage}
                       error={fieldState.error}
                     />
