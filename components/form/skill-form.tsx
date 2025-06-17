@@ -15,6 +15,7 @@ import { useFieldArray } from 'react-hook-form'
 import { toast } from 'sonner'
 import { AllSkillsInput, SkillInput, SkillTypeResponse } from '@/types/type'
 import { Loader2 } from 'lucide-react'
+import { supabaseClient } from '@/lib/supabase-client'
 
 interface Props {
   defaultValues?: SkillTypeResponse[]
@@ -72,76 +73,81 @@ export const SkillForm = ({ defaultValues, onCancel }: Props) => {
     }
   )
 
-  const onSubmit = async (data: z.infer<typeof allSkillsFormSchema>) => {
-    try {
-      setIsUploading(true)
+const onSubmit = async (data: z.infer<typeof allSkillsFormSchema>) => {
+  try {
+    setIsUploading(true);
 
-      const formData = new FormData()
+    const isUpdating = !!defaultValues?.[0]?.id;
+    const bucketName = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
+    if (!bucketName) throw new Error("Supabase bucket name not configured");
 
-      // Append all new images for upload
-      data.sectors.forEach((sector, sectorIndex) => {
-        sector.skills.forEach((skill, skillIndex) => {
-          if (skill.image instanceof File) {
-            formData.append(
-              `sector[${sectorIndex}].skill[${skillIndex}].image`,
-              skill.image
-            )
+    const finalData: AllSkillsInput = [];
+
+    for (let sectorIndex = 0; sectorIndex < data.sectors.length; sectorIndex++) {
+      const sector = data.sectors[sectorIndex];
+      const updatedSkills: SkillInput[] = [];
+
+      for (let skillIndex = 0; skillIndex < sector.skills.length; skillIndex++) {
+        const skill = sector.skills[skillIndex];
+        let imageUrl = typeof skill.image === "string" ? skill.image : "";
+
+        if (skill.image instanceof File) {
+          const filePath = `${Date.now()}-${skill.image.name}`;
+          const { error: uploadError } = await supabaseClient.storage
+            .from(bucketName)
+            .upload(filePath, skill.image, {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: skill.image.type,
+            });
+
+          if (uploadError) {
+            console.warn(`Failed to upload image for ${skill.name}:`, uploadError.message);
+            toast.error(`Failed to upload image for ${skill.name}`);
+            continue;
           }
-        })
-      })
 
-      // Upload images to server (api/upload)
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
+          const { data: { publicUrl } } = supabaseClient.storage.from(bucketName).getPublicUrl(filePath);
+          if (!publicUrl) throw new Error("Failed to get public URL for skill image");
 
-      if (!uploadRes.ok) throw new Error('File upload failed')
-
-      const uploadResults = await uploadRes.json()
-
-      // Build final payload with uploaded image URLs or fallback to old string URLs
-      const finalData: AllSkillsInput = data.sectors.map((sector, sectorIndex) => {
-        const updatedSkills: SkillInput[] = sector.skills.map((skill, skillIndex) => {
-          const key = `sector[${sectorIndex}].skill[${skillIndex}].image`
-          const uploaded = uploadResults[key]
-
-          return {
-            name: skill.name,
-            desc: skill.desc,
-            image: uploaded?.publicUrl || (skill.image as string),
-          }
-        })
-
-        return {
-          title: sector.title,
-          skills: updatedSkills,
+          imageUrl = publicUrl;
         }
-      })
 
-     
-
-      if (defaultValues?.[0]?.id) {
-        const oldData: AllSkillsInput = defaultValues.map((sector) => ({
-          title: sector.name,
-          skills: sector.skills.map((skill) => ({
-            name: skill.name,
-            desc: skill.desc,
-            image: skill.skillImage,
-          })),
-        }))
-
-        update({ newData: finalData, oldData })
-      } else {
-        create(finalData)
+        updatedSkills.push({
+          name: skill.name,
+          desc: skill.desc,
+          image: imageUrl,
+        });
       }
-    } catch (error) {
-      console.error('Error submitting skills:', error)
-      toast.error('Submission failed. Please try again.')
-    } finally {
-      setIsUploading(false)
+
+      finalData.push({
+        title: sector.title,
+        skills: updatedSkills,
+      });
     }
+
+    if (isUpdating) {
+      const oldData: AllSkillsInput = defaultValues.map((sector) => ({
+        title: sector.name,
+        skills: sector.skills.map((skill) => ({
+          name: skill.name,
+          desc: skill.desc,
+          image: skill.skillImage,
+        })),
+      }));
+
+      update({ newData: finalData, oldData });
+    } else {
+      create(finalData);
+    }
+  } catch (error) {
+    console.error("Error submitting skills:", error);
+    toast.error("Submission failed. Please try again.");
+  } finally {
+    setIsUploading(false);
   }
+};
+
 
 const previewImage = (sectorIndex: number, skillIndex: number): string | undefined => {
   const sector = form.getValues(`sectors.${sectorIndex}`);

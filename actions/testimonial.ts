@@ -49,49 +49,50 @@ export const updateTestimonial = async (data: TestimonialInput, testimonialId: s
       return { status: 400, message: "Testimonial ID and data are required" };
     }
 
-    const existingTestimonial = await db.testimonial.findUnique({ where: { id: testimonialId } });
+    const existing = await db.testimonial.findUnique({
+      where: { id: testimonialId },
+    });
 
-    if (!existingTestimonial) {
+    if (!existing) {
       return { status: 404, message: "Testimonial not found" };
     }
 
-    const bucket = process.env.SUPABASE_BUCKET_NAME!;
+    const bucket = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const publicPrefix = `${supabaseUrl}/storage/v1/object/public/${bucket}/`;
 
-    // Extract file path helper
-    const extractPath = (url?: string) => {
-      if (!url) return null;
-      try {
-        const urlObj = new URL(url);
-        const expectedPrefix = `/storage/v1/object/public/${bucket}/`;
-        if (urlObj.pathname.startsWith(expectedPrefix)) {
-          return decodeURIComponent(urlObj.pathname.slice(expectedPrefix.length));
+    const oldImage = existing.image;
+    const newImage = data.image;
+
+    // ✅ Delete old image if changed
+    if (oldImage && oldImage !== newImage && oldImage.startsWith(publicPrefix)) {
+      const relativePath = decodeURIComponent(oldImage.replace(publicPrefix, ""));
+      if (relativePath) {
+        const { error } = await supabase.storage.from(bucket).remove([relativePath]);
+        if (error) {
+          console.warn("⚠️ Failed to delete old testimonial image:", error.message);
+        } else {
+          console.log("🗑️ Deleted old testimonial image from Supabase:", relativePath);
         }
-      } catch {
-        return null;
       }
-      return null;
-    };
-
-    const oldImagePath = extractPath(existingTestimonial.image);
-    const newImagePath = extractPath(data.image);
-
-    if (oldImagePath && oldImagePath !== newImagePath) {
-      const { error } = await supabase.storage.from(bucket).remove([oldImagePath]);
-      if (error) console.warn(`Failed to delete old testimonial image: ${error.message}`);
     }
 
-    const updatedTestimonial = await db.testimonial.update({
+    // ✅ Update testimonial
+    const updated = await db.testimonial.update({
       where: { id: testimonialId },
-      data,
+      data: {
+        name: data.name,
+        rating: data.rating,
+        projectTitle: data.projectTitle,
+        image: newImage,
+        startDate: data.startDate,
+        endDate: data.endDate,
+      },
     });
 
-    if (!updatedTestimonial) {
-      return { status: 400, message: "Failed to update testimonial" };
-    }
-
-    return { status: 200, message: "Testimonial updated successfully", data: updatedTestimonial };
+    return { status: 200, message: "Testimonial updated successfully", data: updated };
   } catch (error) {
-    console.error("Update testimonial error:", error);
+    console.error("❌ Update testimonial error:", error);
     return { status: 500, message: "Something went wrong on the server" };
   }
 };
@@ -105,7 +106,7 @@ export const deleteTestimonial = async (testimonialId: string) => {
 
     if (!testimonial) return { status: 404, message: "Testimonial not found" };
 
-    const bucket = process.env.SUPABASE_BUCKET_NAME!;
+    const bucket = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
     const extractPath = (url?: string) => {
       if (!url) return null;
       try {

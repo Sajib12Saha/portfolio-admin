@@ -51,12 +51,14 @@ export const updateProfile = async (profileId: string, data: ProfileInput) => {
     }
 
     const profile = await db.profile.findUnique({ where: { id: profileId } });
-
     if (!profile) {
       return { status: 404, message: "Profile not found" };
     }
 
-    const bucket = process.env.SUPABASE_BUCKET_NAME!;
+    const bucket = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const fullPrefix = `${supabaseUrl}/storage/v1/object/public/${bucket}/`;
+
     const existingImages = {
       primaryImage: profile.primaryImage,
       secondaryImage: profile.secondaryImage,
@@ -79,23 +81,10 @@ export const updateProfile = async (profileId: string, data: ProfileInput) => {
       const oldUrl = existingImages[key];
       const newUrl = incomingImages[key];
 
-      if (oldUrl && oldUrl !== newUrl) {
-        try {
-          const urlObj = new URL(oldUrl);
-          const expectedPrefix = `/storage/v1/object/public/${bucket}/`;
-
-          if (urlObj.pathname.startsWith(expectedPrefix)) {
-            const relativePath = decodeURIComponent(
-              urlObj.pathname.slice(expectedPrefix.length)
-            );
-            if (relativePath) {
-              pathsToDelete.push(relativePath);
-            }
-          } else {
-            console.warn("URL does not match bucket prefix:", oldUrl);
-          }
-        } catch (err) {
-          console.warn("Invalid image URL:", oldUrl);
+      if (oldUrl && oldUrl !== newUrl && oldUrl.startsWith(fullPrefix)) {
+        const relativePath = decodeURIComponent(oldUrl.replace(fullPrefix, ""));
+        if (relativePath) {
+          pathsToDelete.push(relativePath);
         }
       }
     }
@@ -114,7 +103,7 @@ export const updateProfile = async (profileId: string, data: ProfileInput) => {
       data: {
         ...data,
         socialMedia: {
-          deleteMany: {}, // clear old social media
+          deleteMany: {},
           create: data.socialMedia.map((item) => ({
             platformName: item.platformName,
             platformLink: item.platformLink,
@@ -136,6 +125,7 @@ export const updateProfile = async (profileId: string, data: ProfileInput) => {
 
 
 
+
 export const removeProfile = async (profileId: string) => {
   try {
     if (!profileId) {
@@ -147,7 +137,7 @@ export const removeProfile = async (profileId: string) => {
       return { status: 404, message: "Profile not found" };
     }
 
-    const bucket = process.env.SUPABASE_BUCKET_NAME!; // e.g. 'images'
+    const bucket = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!; // e.g. 'images'
     const imageUrls = [
       profile.primaryImage,
       profile.secondaryImage,

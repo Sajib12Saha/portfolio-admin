@@ -49,29 +49,15 @@ export const updateSkill = async (
   oldData: AllSkillsInput
 ) => {
   try {
-    const bucket = process.env.SUPABASE_BUCKET_NAME!;
-    if (!bucket) throw new Error("Supabase bucket not configured");
+    const bucket = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const publicPrefix = `${supabaseUrl}/storage/v1/object/public/${bucket}/`;
 
-    // Helper function to extract relative path from Supabase public URL
-    const extractPath = (url?: string) => {
-      if (!url) return null;
-      try {
-        const urlObj = new URL(url);
-        const expectedPrefix = `/storage/v1/object/public/${bucket}/`;
+    if (!bucket || !supabaseUrl) {
+      throw new Error("Supabase configuration is missing");
+    }
 
-        if (urlObj.pathname.startsWith(expectedPrefix)) {
-          return decodeURIComponent(urlObj.pathname.slice(expectedPrefix.length));
-        } else {
-          console.warn("URL does not match expected Supabase path:", url);
-          return null;
-        }
-      } catch (err) {
-        console.warn("Invalid image URL:", url);
-        return null;
-      }
-    };
-
-    // Step 1: Map old skills by unique key (name+desc)
+    // Step 1: Map old skills by unique key
     const oldImageMap = new Map<string, string>();
     for (const sector of oldData) {
       for (const skill of sector.skills) {
@@ -86,37 +72,40 @@ export const updateSkill = async (
       for (const skill of sector.skills) {
         const key = `${skill.name}||${skill.desc}`;
         const oldImage = oldImageMap.get(key);
-
         if (oldImage && oldImage === skill.image) {
           stillUsed.add(oldImage);
         }
       }
     }
 
+    // Step 3: Identify which images to delete
     const allOldImages = [...oldImageMap.values()];
     const imagesToDelete = allOldImages.filter((url) => !stillUsed.has(url));
 
-    // Step 3: Extract and delete old image paths
     const pathsToDelete = imagesToDelete
-      .map((url) => extractPath(url))
+      .map((url) =>
+        url?.startsWith(publicPrefix)
+          ? decodeURIComponent(url.replace(publicPrefix, ""))
+          : null
+      )
       .filter(Boolean) as string[];
 
     if (pathsToDelete.length > 0) {
       const { error } = await supabase.storage.from(bucket).remove(pathsToDelete);
       if (error) {
-        console.warn("Failed to delete skill images:", error.message);
+        console.warn("⚠️ Failed to delete skill images:", error.message);
       } else {
-        console.log("Deleted old skill images:", pathsToDelete);
+        console.log("🗑️ Deleted unused skill images:", pathsToDelete);
       }
     }
 
-    // Step 4: Remove all old skill types (and skills via cascade or manually)
+    // Step 4: Delete old skill types (and skills via cascade or manually)
     const oldSkillTypeNames = oldData.map((s) => s.title);
     await db.skillType.deleteMany({
       where: { name: { in: oldSkillTypeNames } },
     });
 
-    // Step 5: Recreate new skill types and skills
+    // Step 5: Create new skill types and skills
     for (const sector of newData) {
       await db.skillType.create({
         data: {
@@ -134,10 +123,11 @@ export const updateSkill = async (
 
     return { status: 200, message: "Skills updated successfully" };
   } catch (error) {
-    console.error("updateSkill error:", error);
+    console.error("❌ updateSkill error:", error);
     return { status: 500, message: "Server error during skill update" };
   }
 };
+
 
 
 
@@ -150,7 +140,7 @@ export const removeSkillType = async (ids: string[]) => {
       return { status: 400, message: "No skill type IDs provided" };
     }
 
-    const bucket = process.env.SUPABASE_BUCKET_NAME!;
+    const bucket = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
     if (!bucket) throw new Error("Supabase bucket not configured");
 
     // Extract relative path from full Supabase public URL

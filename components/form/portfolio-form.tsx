@@ -94,7 +94,7 @@ const onSubmit = async (data: z.infer<typeof portfolioFormSchema>) => {
     const isNewImage = typeof data.image !== "string";
 
     if (isNewImage && data.image instanceof File) {
-      const bucketName = process.env.SUPABASE_BUCKET_NAME!;
+      const bucketName = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
       if (!bucketName) throw new Error("Supabase bucket name not configured");
 
       // Upload portfolio image to Supabase
@@ -141,6 +141,7 @@ const onSubmit = async (data: z.infer<typeof portfolioFormSchema>) => {
     setIsUploading(false);
   }
 };
+
 
 
 

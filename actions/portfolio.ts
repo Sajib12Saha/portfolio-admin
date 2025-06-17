@@ -46,7 +46,7 @@ export const getPortfolios = async (page: number = 1):Promise<PaginatedPortfolio
 
 // ✅ Update Portfolio
 
-export const updatePortfolio = async (data: PortfolioInput, portfolioId: string) => {
+export const updatePortfolio = async (data: any, portfolioId: string) => {
   try {
     if (!portfolioId) {
       return { status: 400, message: "Portfolio ID is required" };
@@ -60,28 +60,22 @@ export const updatePortfolio = async (data: PortfolioInput, portfolioId: string)
       return { status: 404, message: "Portfolio not found" };
     }
 
-    const bucket = process.env.SUPABASE_BUCKET_NAME!;
-    const extractPath = (url?: string) => {
-      if (!url) return null;
-      try {
-        const urlObj = new URL(url);
-        const expectedPrefix = `/storage/v1/object/public/${bucket}/`;
-        if (urlObj.pathname.startsWith(expectedPrefix)) {
-          return decodeURIComponent(urlObj.pathname.slice(expectedPrefix.length));
-        }
-      } catch {
-        return null;
-      }
-      return null;
-    };
+    const bucket = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const publicPrefix = `${supabaseUrl}/storage/v1/object/public/${bucket}/`;
 
-    // ✅ Delete old image from Supabase if changed
-    if (data.image !== existing.image) {
-      const oldImagePath = extractPath(existing.image);
-      if (oldImagePath) {
-        const { error } = await supabase.storage.from(bucket).remove([oldImagePath]);
+    // ✅ Delete old image if changed
+    const oldImage = existing.image;
+    const newImage = data.image;
+
+    if (oldImage && oldImage !== newImage && oldImage.startsWith(publicPrefix)) {
+      const relativePath = decodeURIComponent(oldImage.replace(publicPrefix, ""));
+      if (relativePath) {
+        const { error } = await supabase.storage.from(bucket).remove([relativePath]);
         if (error) {
-          console.warn("Failed to delete old portfolio image:", error.message);
+          console.warn("⚠️ Failed to delete old portfolio image:", error.message);
+        } else {
+          console.log("🗑️ Deleted old image from Supabase:", relativePath);
         }
       }
     }
@@ -92,11 +86,11 @@ export const updatePortfolio = async (data: PortfolioInput, portfolioId: string)
       data: {
         title: data.title,
         desc: data.desc,
-        image: data.image,
+        image: newImage,
         react: data.react,
         externalLink: data.externalLink,
         technology: {
-          deleteMany: {}, // Clear old tech
+          deleteMany: {}, // clear old
           create: data.technology,
         },
       },
@@ -104,7 +98,7 @@ export const updatePortfolio = async (data: PortfolioInput, portfolioId: string)
 
     return { status: 200, message: "Portfolio updated successfully" };
   } catch (error) {
-    console.error("Update portfolio error:", error);
+    console.error("❌ Update portfolio error:", error);
     return { status: 500, message: "Something went wrong on the server" };
   }
 };
@@ -126,7 +120,7 @@ export const deletePortfolio = async (portfolioId: string) => {
       return { status: 404, message: "Portfolio not found" };
     }
 
-    const bucket = process.env.SUPABASE_BUCKET_NAME!;
+    const bucket = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
     const extractPath = (url?: string) => {
       if (!url) return null;
       try {

@@ -93,7 +93,7 @@ const onSubmit = async () => {
     let imageUrl = "";
 
     if (data.image instanceof File) {
-      const bucketName = process.env.SUPABASE_BUCKET_NAME!;
+      const bucketName = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
       if (!bucketName) throw new Error("Supabase bucket name not configured");
 
       const filePath = `${Date.now()}-${data.image.name}`;
@@ -143,6 +143,7 @@ const onSubmit = async () => {
     setIsUploading(false);
   }
 };
+
 
   const isLoading = isUploading || createPending || updatePending;
 

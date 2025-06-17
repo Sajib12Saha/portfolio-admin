@@ -62,28 +62,39 @@ const { mutate: update, isPending: updatePending } = useCustomMutation(
 
   }
 );
-
 const onSubmit = async (data: z.infer<typeof profileFormSchema>) => {
   try {
     setIsUploading(true);
 
-    const bucketName = process.env.SUPABASE_BUCKET_NAME!;
+    const bucketName = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
     if (!bucketName) throw new Error("Supabase bucket name not configured");
 
     // Helper to upload one file and return public URL
-    async function uploadFile(file: File) {
-      const filePath = `${Date.now()}-${file.name}`;
-      const { data, error } = await supabaseClient.storage
-        .from(bucketName)
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: file.type,
-        });
-      if (error) throw error;
-      const { data:{publicUrl} } = supabaseClient.storage.from(bucketName).getPublicUrl(filePath);
-      return publicUrl;
-    }
+async function uploadFile(file: File) {
+  const filePath = `${Date.now()}-${file.name}`;
+  
+  const { data: uploadData, error: uploadError } = await supabaseClient.storage
+    .from(bucketName)
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type,
+    });
+
+  if (uploadError) {
+    throw new Error("Upload failed: " + uploadError.message);
+  }
+
+  const { data: publicUrlData } = supabaseClient.storage
+    .from(bucketName)
+    .getPublicUrl(filePath);
+
+  if (!publicUrlData?.publicUrl) {
+    throw new Error("Public URL not found for uploaded file.");
+  }
+
+  return publicUrlData.publicUrl;
+}
 
     // Object to hold uploaded URLs
     const uploads: Record<string, string | null> = {
@@ -106,7 +117,7 @@ const onSubmit = async (data: z.infer<typeof profileFormSchema>) => {
     if (data.twitterImage instanceof File)
       uploads.twitterImage = await uploadFile(data.twitterImage);
 
-    // Compose final data, falling back to existing URLs or defaultValues
+    // Compose final data
     const finalData: ProfileInput = {
       name: data.name,
       phone: data.phone,
@@ -149,23 +160,26 @@ const onSubmit = async (data: z.infer<typeof profileFormSchema>) => {
         null,
     };
 
+    // Required image check
     if (!finalData.primaryImage || !finalData.secondaryImage) {
       throw new Error("Primary and secondary images are required.");
     }
 
+    // Update or create profile
     if (defaultValues?.id) {
-      update({ profileId: defaultValues.id, data: finalData });
+      await update({ profileId: defaultValues.id, data: finalData });
     } else {
-      mutate(finalData);
+      await mutate(finalData);
     }
-  } catch (error) {
+
+    toast.success("Profile submitted successfully!");
+  } catch (error: any) {
     console.error("Error submitting profile:", error);
-    toast.error("Submission failed. Please try again.");
+    toast.error(error.message || "Submission failed. Please try again.");
   } finally {
     setIsUploading(false);
   }
 };
-
   const cancelSubmit = () =>{
     onCancel?.(); 
   form.reset();
