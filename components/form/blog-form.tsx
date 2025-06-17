@@ -32,7 +32,6 @@ export const Blogform = ({ defaultValue, onCancel }: Props) => {
     image: defaultValue?.image || undefined,
   });
 
-  // Reset form if defaultValue changes (supports editing different blogs dynamically)
   useEffect(() => {
     if (defaultValue) {
       form.reset({
@@ -45,7 +44,6 @@ export const Blogform = ({ defaultValue, onCancel }: Props) => {
 
   const [isUploading, setIsUploading] = useState(false);
 
-  // Create mutation for new blog
   const { mutate: createMutate, isPending: createPending } = useCustomMutation(
     ["create-blog"],
     createBlog,
@@ -60,7 +58,6 @@ export const Blogform = ({ defaultValue, onCancel }: Props) => {
     }
   );
 
-  // Update mutation for existing blog
   const { mutate: updateMutate, isPending: updatePending } = useCustomMutation(
     ["update-blog"],
     (payload: { data: BlogInput; blogId: string }) =>
@@ -72,85 +69,80 @@ export const Blogform = ({ defaultValue, onCancel }: Props) => {
     }
   );
 
-  // Cancel handler
   const onCancelSubmit = () => {
     form.reset();
     onCancel?.();
   };
 
-  // Content change handler — update form state & log
   const handleContentChange = (value: string) => {
     form.setValue("content", value, { shouldDirty: true });
   };
 
-  // Submit handler
-const onSubmit = async () => {
-  try {
-    setIsUploading(true);
+  const onSubmit = async () => {
+    try {
+      setIsUploading(true);
 
-    const data = form.getValues();
+      const data = form.getValues();
+      let imageUrl = "";
 
-    let imageUrl = "";
+      if (data.image instanceof File) {
+        const bucketName = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
+        if (!bucketName) throw new Error("Supabase bucket name not configured");
 
-    if (data.image instanceof File) {
-      const bucketName = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
-      if (!bucketName) throw new Error("Supabase bucket name not configured");
+        const filePath = `${Date.now()}-${data.image.name}`;
+        const { error: uploadError } = await supabaseClient.storage
+          .from(bucketName)
+          .upload(filePath, data.image, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: data.image.type,
+          });
 
-      const filePath = `${Date.now()}-${data.image.name}`;
-      const { error: uploadError } = await supabaseClient.storage
-        .from(bucketName)
-        .upload(filePath, data.image, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: data.image.type,
-        });
+        if (uploadError) throw uploadError;
 
-      if (uploadError) throw uploadError;
+        const { data: { publicUrl } } = supabaseClient.storage.from(bucketName).getPublicUrl(filePath);
+        if (!publicUrl) throw new Error("Failed to get public URL for blog image");
 
-      const {data:{publicUrl} } = supabaseClient.storage.from(bucketName).getPublicUrl(filePath);
-      if (!publicUrl) throw new Error("Failed to get public URL for blog image");
+        imageUrl = publicUrl;
+      } else if (typeof data.image === "string" && data.image.length > 0) {
+        imageUrl = data.image;
+      } else {
+        throw new Error("Image is required.");
+      }
 
-      imageUrl = publicUrl;
-    } else if (typeof data.image === "string" && data.image.length > 0) {
-      imageUrl = data.image;
-    } else {
-      throw new Error("Image is required.");
+      const sanitizedContent = DOMPurify.sanitize(data.content, {
+        USE_PROFILES: { html: true },
+        ALLOWED_TAGS: [
+          "p", "br", "b", "strong", "i", "em", "u", "s", "ul", "ol", "li",
+          "h1", "h2", "h3", "blockquote", "code", "pre", "div", "span", "a",
+        ],
+        ALLOWED_ATTR: ["class", "href", "target", "rel"],
+      });
+
+      const finalData: BlogInput = {
+        title: data.title,
+        content: sanitizedContent,
+        image: imageUrl,
+      };
+
+      if (defaultValue?.id) {
+        updateMutate({ data: finalData, blogId: defaultValue.id });
+      } else {
+        createMutate(finalData);
+      }
+    } catch (error) {
+      console.error("Blog submit error:", error);
+    } finally {
+      setIsUploading(false);
     }
-
-    const sanitizedContent = DOMPurify.sanitize(data.content, {
-      USE_PROFILES: { html: true },
-      ALLOWED_TAGS: [
-        "p", "br", "b", "strong", "i", "em", "u", "s", "ul", "ol", "li",
-        "h1", "h2", "h3", "blockquote", "code", "pre", "div", "span", "a",
-      ],
-      ALLOWED_ATTR: ["class", "href", "target", "rel"],
-    });
-
-    const finalData: BlogInput = {
-      title: data.title,
-      content: sanitizedContent,
-      image: imageUrl,
-    };
-
-    if (defaultValue?.id) {
-      updateMutate({ data: finalData, blogId: defaultValue.id });
-    } else {
-      createMutate(finalData);
-    }
-  } catch (error) {
-    console.error("Blog submit error:", error);
-  } finally {
-    setIsUploading(false);
-  }
-};
-
+  };
 
   const isLoading = isUploading || createPending || updatePending;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 max-w-5xl w-full mx-auto">
       <h3 className="text-lg md:text-xl font-semibold">Blog Form</h3>
-      <Card className="w-full max-w-5xl">
+      <Card className="w-full">
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -205,11 +197,7 @@ const onSubmit = async () => {
                   </Button>
                 )}
 
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={isLoading}
-                >
+                <Button type="submit" variant="primary" disabled={isLoading}>
                   {isLoading ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : defaultValue?.id ? "Save Changes" : "Publish"}
