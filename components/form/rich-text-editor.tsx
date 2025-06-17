@@ -91,7 +91,7 @@ export const RichTextEditor = ({
   return (
     <div className="space-y-2 ">
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-2 border px-3 py-2 rounded-md bg-muted">
+      <div className="flex flex-wrap gap-2 sm:gap-1 border px-3 py-2 rounded-md bg-muted overflow-x-auto">
         <Button
           type="button"
           size="sm"
@@ -219,13 +219,13 @@ export const RichTextEditor = ({
       </div>
 
       {/* Editor Content */}
-      <div
-        className={cn(
-          'prose prose-sm rounded-md border px-1 w-full py-1 text-sm bg-input text-foreground shadow-[3px_3px_3px_rgba(0,0,0,0.25)_inset,-1px_-1px_4px_rgba(255,255,255,0.8)_inset] dark:shadow-[3px_3px_3px_rgba(0,0,0,0.25)_inset,-1px_-1px_4px_rgba(255,255,255,0.16)_inset]'
-        )}
-      >
-        <EditorContent editor={editor} />
-      </div>
+<div
+  className={cn(
+    'prose prose-sm w-full max-w-full  rounded-md border px-3 py-2 text-sm bg-input text-foreground shadow-[inset_3px_3px_3px_rgba(0,0,0,0.25),inset_-1px_-1px_4px_rgba(255,255,255,0.8)] dark:shadow-[inset_3px_3px_3px_rgba(0,0,0,0.25),inset_-1px_-1px_4px_rgba(255,255,255,0.16)]'
+  )}
+>
+  <EditorContent editor={editor} />
+</div>
     </div>
   );
 };
