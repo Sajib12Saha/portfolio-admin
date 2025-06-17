@@ -89,7 +89,7 @@ export const RichTextEditor = ({
   };
 
   return (
-    <div className="space-y-2 w-full">
+    <div className="space-y-2">
       {/* Toolbar */}
       <div className="flex flex-wrap gap-2 border px-3 py-2 rounded-md bg-muted">
         <Button
