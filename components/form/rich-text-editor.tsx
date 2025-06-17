@@ -9,8 +9,6 @@ import Strike from '@tiptap/extension-strike';
 import TextAlign from '@tiptap/extension-text-align';
 import CodeBlock from '@tiptap/extension-code-block';
 
-import { useTheme } from 'next-themes';
-
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -43,12 +41,12 @@ export const RichTextEditor = ({
   defaultValue = '',
 }: RichTextEditorProps) => {
   const [mounted, setMounted] = useState(false);
-  const { theme } = useTheme();
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
+        // bulletList and orderedList included by default, no need to configure here
       }),
       Placeholder.configure({ placeholder: 'Write your content...' }),
       Underline,
@@ -94,57 +92,140 @@ export const RichTextEditor = ({
     <div className="space-y-2">
       {/* Toolbar */}
       <div className="flex flex-wrap gap-2 sm:gap-1 border px-3 py-2 rounded-md bg-muted overflow-x-hidden">
-        <Button size="sm" variant={activeVariant('bold')} onClick={() => toggle(() => editor.commands.toggleBold())}>
+        <Button
+          type="button"
+          size="sm"
+          variant={activeVariant('bold')}
+          onClick={() => toggle(() => editor.commands.toggleBold())}
+        >
           <Bold size={16} />
         </Button>
-        <Button size="sm" variant={activeVariant('italic')} onClick={() => toggle(() => editor.commands.toggleItalic())}>
+
+        <Button
+          type="button"
+          size="sm"
+          variant={activeVariant('italic')}
+          onClick={() => toggle(() => editor.commands.toggleItalic())}
+        >
           <Italic size={16} />
         </Button>
-        <Button size="sm" variant={activeVariant('underline')} onClick={() => toggle(() => editor.commands.toggleUnderline())}>
+
+        <Button
+          type="button"
+          size="sm"
+          variant={activeVariant('underline')}
+          onClick={() => toggle(() => editor.commands.toggleUnderline())}
+        >
           <UnderlineIcon size={16} />
         </Button>
-        <Button size="sm" variant={activeVariant('strike')} onClick={() => toggle(() => editor.commands.toggleStrike())}>
+
+        <Button
+          type="button"
+          size="sm"
+          variant={activeVariant('strike')}
+          onClick={() => toggle(() => editor.commands.toggleStrike())}
+        >
           <Strikethrough size={16} />
         </Button>
-        <Button size="sm" variant={activeVariant('bulletList')} onClick={() => toggle(() => editor.commands.toggleBulletList())}>
+
+        <Button
+          type="button"
+          size="sm"
+          variant={activeVariant('bulletList')}
+          onClick={() => toggle(() => editor.commands.toggleBulletList())}
+        >
           <List size={16} />
         </Button>
-        <Button size="sm" variant={activeVariant('orderedList')} onClick={() => toggle(() => editor.commands.toggleOrderedList())}>
+
+        <Button
+          type="button"
+          size="sm"
+          variant={activeVariant('orderedList')}
+          onClick={() => toggle(() => editor.commands.toggleOrderedList())}
+        >
           <ListOrdered size={16} />
         </Button>
-        <Button size="sm" variant={activeVariant('heading', { level: 1 })} onClick={() => toggle(() => editor.commands.toggleHeading({ level: 1 }))}>
+
+        <Button
+          type="button"
+          size="sm"
+          variant={activeVariant('heading', { level: 1 })}
+          onClick={() => toggle(() => editor.commands.toggleHeading({ level: 1 }))}
+        >
           <Heading1 size={16} />
         </Button>
-        <Button size="sm" variant={activeVariant('heading', { level: 2 })} onClick={() => toggle(() => editor.commands.toggleHeading({ level: 2 }))}>
+
+        <Button
+          type="button"
+          size="sm"
+          variant={activeVariant('heading', { level: 2 })}
+          onClick={() => toggle(() => editor.commands.toggleHeading({ level: 2 }))}
+        >
           <Heading2 size={16} />
         </Button>
-        <Button size="sm" variant={activeVariant('heading', { level: 3 })} onClick={() => toggle(() => editor.commands.toggleHeading({ level: 3 }))}>
+
+        <Button
+          type="button"
+          size="sm"
+          variant={activeVariant('heading', { level: 3 })}
+          onClick={() => toggle(() => editor.commands.toggleHeading({ level: 3 }))}
+        >
           <Heading3 size={16} />
         </Button>
-        <Button size="sm" variant={activeVariant('codeBlock')} onClick={() => toggle(() => editor.commands.toggleCodeBlock())}>
+
+        <Button
+          type="button"
+          size="sm"
+          variant={activeVariant('codeBlock')}
+          onClick={() => toggle(() => editor.commands.toggleCodeBlock())}
+        >
           <Code size={16} />
         </Button>
-        <Button size="sm" onClick={() => toggle(() => editor.commands.setParagraph())}>
+
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => toggle(() => editor.commands.setParagraph())}
+        >
           <Type size={16} />
         </Button>
-        <Button size="sm" variant={activeVariant('textAlign', { textAlign: 'left' })} onClick={() => toggle(() => editor.commands.setTextAlign('left'))}>
+
+        <Button
+          type="button"
+          size="sm"
+          variant={activeVariant('textAlign', { textAlign: 'left' })}
+          onClick={() => toggle(() => editor.commands.setTextAlign('left'))}
+        >
           <AlignLeft size={16} />
         </Button>
-        <Button size="sm" variant={activeVariant('textAlign', { textAlign: 'center' })} onClick={() => toggle(() => editor.commands.setTextAlign('center'))}>
+
+        <Button
+          type="button"
+          size="sm"
+          variant={activeVariant('textAlign', { textAlign: 'center' })}
+          onClick={() => toggle(() => editor.commands.setTextAlign('center'))}
+        >
           <AlignCenter size={16} />
         </Button>
-        <Button size="sm" variant={activeVariant('textAlign', { textAlign: 'right' })} onClick={() => toggle(() => editor.commands.setTextAlign('right'))}>
+
+        <Button
+          type="button"
+          size="sm"
+          variant={activeVariant('textAlign', { textAlign: 'right' })}
+          onClick={() => toggle(() => editor.commands.setTextAlign('right'))}
+        >
           <AlignRight size={16} />
         </Button>
       </div>
 
       {/* Editor Content */}
-      <div className="w-full">
-        <EditorContent
-          editor={editor}
-          className={cn('tiptap', theme === 'dark' ? 'dark' : 'light')}
-        />
-      </div>
+<div
+  className={cn(
+    'prose prose-sm w-full rounded-md border px-3  py-2 text-sm bg-input text-foreground shadow-[inset_3px_3px_3px_rgba(0,0,0,0.25),inset_-1px_-1px_4px_rgba(255,255,255,0.8)] dark:shadow-[inset_3px_3px_3px_rgba(0,0,0,0.25),inset_-1px_-1px_4px_rgba(255,255,255,0.16)]'
+  )}
+>
+  <EditorContent editor={editor}/>
+</div>
     </div>
   );
 };
