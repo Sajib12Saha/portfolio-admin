@@ -168,7 +168,7 @@ export const Blogform = ({ defaultValue, onCancel }: Props) => {
                   </div>
                 </FormLabel>
 
-            <div className="w-full max-w-full overflow-x-auto">
+            <div className="w-full max-w-full overflow-x-hidden">
    <RichTextEditor
                     value={form.watch("content")}
                     onChange={handleContentChange}
