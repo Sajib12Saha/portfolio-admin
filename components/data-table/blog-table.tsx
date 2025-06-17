@@ -86,9 +86,9 @@ export const BlogTable = ({ data, onDelete, isPending }: Props) => {
             </Button>
 
             {/* Edit Dialog */}
-<Dialog open={!!editBlog} onOpenChange={(open) => !open && setEditBlog(null)}>
+         <Dialog open={!!editBlog} onOpenChange={(open) => !open && setEditBlog(null)}>
   <DialogContent
-    className="!max-w-[90vw] sm:!max-w-5xl w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6"
+    className="max-w-5xl w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6"
   >
     <DialogHeader>
       <DialogTitle className="sr-only">Edit Blog</DialogTitle>
@@ -102,7 +102,6 @@ export const BlogTable = ({ data, onDelete, isPending }: Props) => {
     )}
   </DialogContent>
 </Dialog>
-
 
 
             {/* Delete Dialog */}
