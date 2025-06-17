@@ -168,11 +168,13 @@ export const Blogform = ({ defaultValue, onCancel }: Props) => {
                   </div>
                 </FormLabel>
 
-            
-                  <RichTextEditor
+            <div className="w-full relative">
+   <RichTextEditor
                     value={form.watch("content")}
                     onChange={handleContentChange}
                   />
+            </div>
+               
             
               </div>
 
