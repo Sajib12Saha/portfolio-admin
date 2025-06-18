@@ -140,7 +140,7 @@ export const Blogform = ({ defaultValue, onCancel }: Props) => {
   const isLoading = isUploading || createPending || updatePending;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 relative z-50">
       <h3 className="text-lg md:text-xl font-semibold">Blog Form</h3>
       <Card className="max-w-5xl">
         <CardContent>
