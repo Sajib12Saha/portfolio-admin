@@ -105,15 +105,21 @@
 /* tiptap.css */
 
 .tiptap {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
   min-height: 500px;
   outline: none;
-  padding: 0.75rem 0.75rem;
+  padding: 0.75rem;
   border-radius: 0.5rem;
   font-size: 0.875rem; /* text-sm */
   line-height: 1.5;
   white-space: pre-wrap;
   overflow-x: hidden;
+  word-wrap: break-word;
 }
+
 
 /* Light theme */
 .tiptap.light {
