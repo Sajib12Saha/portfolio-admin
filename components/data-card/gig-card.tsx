@@ -41,7 +41,7 @@ export const GigCard = ({ gig }: Props) => {
     <TabsContent key={key} value={key} className="mt-4">
       <Card>
         <CardContent className="space-y-10">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row justify-start md:items-center gap-y-4 md:justify-between">
             <div className="flex flex-col items-start gap-y-1.5">
               <h3 className="text-2xl font-bold dark:text-gray-300">{plan.title}</h3>
               <h5 className="font-semibold text-base text-muted-foreground">
@@ -55,12 +55,12 @@ export const GigCard = ({ gig }: Props) => {
 
           <p className="text-muted-foreground text-sm">{plan.desc}</p>
 
-          <div className="grid grid-cols-2 gap-x-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-2">
             {plan.features.map((feature, i) => (
                 
               <div
                 key={i}
-                className="flex gap-x-3 items-center text-muted-foreground text-base font-semibold"
+                className="flex gap-x-3 flex-wrap break-words leading-8 items-center text-muted-foreground text-base font-semibold"
               >
                 <Check className="size-4" /> {feature}
               </div>
