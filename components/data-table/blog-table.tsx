@@ -85,72 +85,72 @@ export const BlogTable = ({ data, onDelete, isPending }: Props) => {
               <Edit2 className="w-4 h-4" />
             </Button>
 
-            {/* Edit Dialog */}
-            <Dialog open={!!editBlog} onOpenChange={(open) => !open && setEditBlog(null)}>
-          <DialogContent
-  className="fixed inset-0 z-50 flex items-center justify-center p-4 "
->
-  <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-lg bg-background p-6 shadow-lg border">
-    <DialogHeader>
-      <DialogTitle className="sr-only">Edit Blog</DialogTitle>
-    </DialogHeader>
-    {editBlog && (
-      <Blogform
-        defaultValue={editBlog}
-        onCancel={() => setEditBlog(null)}
-      />
-    )}
-  </div>
-</DialogContent>
-
-            </Dialog>
-
-            {/* Delete Dialog */}
-            <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  onClick={() => {
-                    setSelectedToDelete(blog);
-                    setIsDeleteOpen(true);
-                  }}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2 text-destructive">
-                    <AlertTriangle className="w-5 h-5" />
-                    Confirm Delete
-                  </DialogTitle>
-                </DialogHeader>
-                <p className="text-sm text-muted-foreground">
-                  Are you sure you want to delete this blog? This action cannot be undone.
-                </p>
-                <DialogFooter className="flex justify-end space-x-2 pt-4">
-                  <Button onClick={() => setIsDeleteOpen(false)}>Cancel</Button>
-                  <Button
-                    variant="primary"
-                    onClick={() =>
-                      selectedToDelete &&
-                      onDelete?.(selectedToDelete.id, () => {
-                        setIsDeleteOpen(false);
-                        setSelectedToDelete(null);
-                      })
-                    }
-                  >
-                    {isPending ? <Loader2 className="animate-spin h-4 w-4" /> : 'Confirm'}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="destructive"
+                size="icon"
+                onClick={() => {
+                  setSelectedToDelete(blog);
+                  setIsDeleteOpen(true);
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </DialogTrigger>
           </div>
         );
       },
     },
   ];
 
-  return <DataTable columns={columns} data={data} />;
+  return (
+    <>
+      <DataTable columns={columns} data={data} />
+
+      {/* Edit Blog Dialog */}
+      <Dialog open={!!editBlog} onOpenChange={(open) => !open && setEditBlog(null)}>
+        <DialogContent className="max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Edit Blog</DialogTitle>
+          </DialogHeader>
+          {editBlog && (
+            <Blogform
+              defaultValue={editBlog}
+              onCancel={() => setEditBlog(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Dialog */}
+      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              Confirm Delete
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete this blog? This action cannot be undone.
+          </p>
+          <DialogFooter className="flex justify-end space-x-2 pt-4">
+            <Button onClick={() => setIsDeleteOpen(false)}>Cancel</Button>
+            <Button
+              variant="primary"
+              onClick={() =>
+                selectedToDelete &&
+                onDelete?.(selectedToDelete.id, () => {
+                  setIsDeleteOpen(false);
+                  setSelectedToDelete(null);
+                })
+              }
+            >
+              {isPending ? <Loader2 className="animate-spin h-4 w-4" /> : 'Confirm'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 };
