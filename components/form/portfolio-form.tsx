@@ -227,7 +227,7 @@ const onSubmit = async (data: z.infer<typeof portfolioFormSchema>) => {
               />
 
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className=" flex flex-col md:flex-row justify-start md:items-center gap-y-4 md:justify-between">
                   <h4 className="text-md font-medium">Technologies</h4>
                   <Button
                     type="button"
