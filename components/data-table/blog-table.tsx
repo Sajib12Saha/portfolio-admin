@@ -87,7 +87,8 @@ export const BlogTable = ({ data, onDelete, isPending }: Props) => {
 
             {/* Edit Dialog */}
             <Dialog open={!!editBlog} onOpenChange={(open) => !open && setEditBlog(null)}>
-              <DialogContent
+              <div className='relative z-50'>
+    <DialogContent
                 className="overflow-y-auto h-full"
      
               >
@@ -95,14 +96,15 @@ export const BlogTable = ({ data, onDelete, isPending }: Props) => {
                   <DialogTitle className='sr-only'>Edit Blog</DialogTitle>
                 </DialogHeader>
                 {editBlog && (
-                  <div className='realtive z-50'>
+         
                   <Blogform
                     defaultValue={editBlog}
                     onCancel={() => setEditBlog(null)}
                   />
-                  </div>
                 )}
               </DialogContent>
+              </div>
+          
             </Dialog>
 
             {/* Delete Dialog */}
