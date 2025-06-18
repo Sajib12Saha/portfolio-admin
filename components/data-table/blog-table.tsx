@@ -88,7 +88,7 @@ export const BlogTable = ({ data, onDelete, isPending }: Props) => {
             {/* Edit Dialog */}
             <Dialog open={!!editBlog} onOpenChange={(open) => !open && setEditBlog(null)}>
           <DialogContent
-  className="fixed inset-0 z-50 flex items-start justify-center p-4 "
+  className="fixed inset-0 z-50 flex items-center justify-center p-4 "
 >
   <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-lg bg-background p-6 shadow-lg border">
     <DialogHeader>
