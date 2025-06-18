@@ -80,7 +80,7 @@ export const BlogTable = ({ data, onDelete, isPending }: Props) => {
         const blog = row.original;
 
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 relative z-50">
             <Button size="icon" onClick={() => setEditBlog(blog)}>
               <Edit2 className="w-4 h-4" />
             </Button>
