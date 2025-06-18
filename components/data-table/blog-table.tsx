@@ -87,20 +87,22 @@ export const BlogTable = ({ data, onDelete, isPending }: Props) => {
 
             {/* Edit Dialog */}
             <Dialog open={!!editBlog} onOpenChange={(open) => !open && setEditBlog(null)}>
-              <DialogContent
-                className="h-full p-2 overflow-y-auto relative z-50"
-     
-              >
-                <DialogHeader>
-                  <DialogTitle className='sr-only'>Edit Blog</DialogTitle>
-                </DialogHeader>
-                {editBlog && (
-                  <Blogform
-                    defaultValue={editBlog}
-                    onCancel={() => setEditBlog(null)}
-                  />
-                )}
-              </DialogContent>
+          <DialogContent
+  className="fixed inset-0 z-50 flex items-start justify-center p-4 "
+>
+  <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-lg bg-background p-6 shadow-lg border">
+    <DialogHeader>
+      <DialogTitle className="sr-only">Edit Blog</DialogTitle>
+    </DialogHeader>
+    {editBlog && (
+      <Blogform
+        defaultValue={editBlog}
+        onCancel={() => setEditBlog(null)}
+      />
+    )}
+  </div>
+</DialogContent>
+
             </Dialog>
 
             {/* Delete Dialog */}
