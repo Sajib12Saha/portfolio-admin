@@ -89,7 +89,7 @@ export const BlogTable = ({ data, onDelete, isPending }: Props) => {
             <Dialog open={!!editBlog} onOpenChange={(open) => !open && setEditBlog(null)}>
          
     <DialogContent
-                className="w-full max-w-xl sm:max-w-3xl lg:max-w-5xl overflow-y-auto sm:rounded-lg"
+                className=" w-[95vw] sm:w-full max-w-[95vw] sm:max-w-3xl lg:max-w-5xl overflow-y-auto sm:rounded-lg"
               >
                 <DialogHeader>
                   <DialogTitle className='sr-only'>Edit Blog</DialogTitle>
