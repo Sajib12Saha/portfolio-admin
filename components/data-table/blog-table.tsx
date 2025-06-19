@@ -80,7 +80,7 @@ export const BlogTable = ({ data, onDelete, isPending }: Props) => {
         const blog = row.original;
 
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 relative">
             <Button size="icon" onClick={() => setEditBlog(blog)}>
               <Edit2 className="w-4 h-4" />
             </Button>
@@ -89,7 +89,7 @@ export const BlogTable = ({ data, onDelete, isPending }: Props) => {
             <Dialog open={!!editBlog} onOpenChange={(open) => !open && setEditBlog(null)}>
          
     <DialogContent
-                className=" w-[95vw] sm:w-full max-h-[90vh] max-w-[95vw] sm:max-w-3xl lg:max-w-5xl overflow-y-auto sm:rounded-lg"
+                className="w-full sm:w-full max-h-[90vh] max-w-[95vw] sm:max-w-3xl lg:max-w-5xl overflow-y-auto sm:rounded-lg"
               >
                 <DialogHeader>
                   <DialogTitle className='sr-only'>Edit Blog</DialogTitle>
