@@ -103,7 +103,7 @@
 
 
 /* tiptap.css */
-
+/* Tiptap Editor Styles */
 .tiptap {
   width: 100%;
   max-width: 100%;
@@ -112,29 +112,28 @@
   outline: none;
   padding: 0.75rem;
   border-radius: 0.5rem;
-  font-size: 0.875rem; /* text-sm */
+  font-size: 0.875rem;
   line-height: 1.5;
   white-space: pre-wrap;
   overflow-x: hidden;
   word-wrap: break-word;
 }
 
-
 /* Light theme */
 .tiptap.light {
   background-color: #e4e4e4;
   color: black;
-  border: 1px solid #d1d5db; /* border-input */
+  border: 1px solid #d1d5db;
 }
 
 /* Dark theme */
 .tiptap.dark {
-  background-color: #191B1E; /* bg-muted */
-  color: #d1d5db; /* text-muted-foreground */
-  border: 1px solid #374151; /* border-border */
+  background-color: #191B1E;
+  color: #d1d5db;
+  border: 1px solid #374151;
 }
 
-/* Optional: style paragraphs, headings, etc. */
+/* Text elements */
 .tiptap p {
   margin: 0 0 0.5rem;
 }
@@ -151,29 +150,55 @@
   margin-bottom: 0.5rem;
 }
 
+/* Lists inside editor */
+.tiptap ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin-bottom: 1rem;
+}
 
-/* For TipTap placeholder */
+.tiptap ol {
+  list-style-type: decimal;
+  padding-left: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.tiptap li {
+  margin-bottom: 0.25rem;
+}
+
+/* TipTap Placeholder */
 .ProseMirror p.is-empty::before {
   content: attr(data-placeholder);
-  color: #9ca3af; /* Customize placeholder color */
+  color: #9ca3af;
   float: left;
   height: 0;
   pointer-events: none;
   user-select: none;
 }
 
+/* Rendered Output Styles using .prose (e.g. blog content) */
 .prose ul {
   list-style-type: disc;
-  padding-left: 1.25rem; /* indent */
+  padding-left: 1.25rem;
   margin-bottom: 1rem;
 }
 
 .prose ol {
   list-style-type: decimal;
-  padding-left: 1.25rem; /* indent */
+  padding-left: 1.25rem;
   margin-bottom: 1rem;
 }
 
 .prose li {
+  margin-bottom: 0.25rem;
+}
+
+/* Optional: nested lists */
+.tiptap li ul,
+.tiptap li ol,
+.prose li ul,
+.prose li ol {
+  margin-top: 0.25rem;
   margin-bottom: 0.25rem;
 }
